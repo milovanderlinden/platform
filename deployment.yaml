@@ -1,0 +1,36 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ushahidi-server-pipe
+spec:
+  selector:
+    app: ushahidi-server-pipe
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ushahidi-server
+  labels:
+    app: ushahidi-server-pipe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ushahidi-server-pipe
+  template:
+    metadata:
+      labels:
+        app: ushahidi-server-pipe
+    spec:
+      imagePullSecrets:
+      - name: pipeline-docker-registry
+      containers:
+      - name: ushahidi-server-pipe
+        image: ${CICD_IMAGE}:${CICD_EXECUTION_SEQUENCE}
+        ports:
+        - containerPort: 8080
